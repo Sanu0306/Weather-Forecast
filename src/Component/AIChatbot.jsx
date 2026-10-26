@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 function AIChatbot({ weather }) {
   const [question, setQuestion] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
@@ -16,7 +18,7 @@ function AIChatbot({ weather }) {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/ai/chat", {
+      const response = await fetch(`${API_URL}/api/ai/chat`, {
         signal: AbortSignal.timeout(30000),
         method: "POST",
         headers: {
@@ -54,7 +56,7 @@ function AIChatbot({ weather }) {
 
       let errorMessage = "AI se connect nahi ho paaya. Please try again.";
 
-      if (error.name === "TimeoutError") {
+      if (error.name === "TimeoutError" || error.name === "AbortError") {
         errorMessage =
           "AI response mein zyada time lag raha hai. Please try again.";
       } else if (!navigator.onLine) {
@@ -66,10 +68,7 @@ function AIChatbot({ weather }) {
 
       setChatHistory((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          text: errorMessage,
-        },
+        { role: "assistant", text: errorMessage },
       ]);
     } finally {
       setLoading(false);
